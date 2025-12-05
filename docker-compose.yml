@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: healthcare-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.name=healthcare-cluster
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - healthcare-network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Logstash
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.1
+    container_name: healthcare-logstash
+    volumes:
+      - ./infrastructure/elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./infrastructure/elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    ports:
+      - "5044:5044"
+      - "5050:5000"
+    environment:
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+
+  # Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: healthcare-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+
+  # Vitals Generator Service
+  vitals-generator:
+    build:
+      context: ./backend/vitals-generator
+      dockerfile: Dockerfile
+    container_name: healthcare-vitals-generator
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DEBUG=false
+    ports:
+      - "8001:8001"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+
+  # Alert Engine Service
+  alert-engine:
+    build:
+      context: ./backend/alert-engine
+      dockerfile: Dockerfile
+    container_name: healthcare-alert-engine
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - VITALS_SERVICE_URL=http://vitals-generator:8001
+      - DEBUG=false
+    ports:
+      - "8002:8002"
+    depends_on:
+      - vitals-generator
+      - elasticsearch
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+
+  # Summarizer Service
+  summarizer-service:
+    build:
+      context: ./backend/summarizer-service
+      dockerfile: Dockerfile
+    container_name: healthcare-summarizer
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DEBUG=false
+    ports:
+      - "8003:8003"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: healthcare-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - vitals-generator
+      - alert-engine
+      - summarizer-service
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+
+volumes:
+  elasticsearch-data:
+    driver: local
+
+networks:
+  healthcare-network:
+    driver: bridge
