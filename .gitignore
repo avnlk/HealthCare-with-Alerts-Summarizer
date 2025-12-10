@@ -51,3 +51,4 @@ finetuned_model/
 
 # Elasticsearch data
 elasticsearch-data/
+infrastructure/kubernetes/secrets/healthcare-secrets.yaml
