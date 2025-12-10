@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ USER appuser
 ENV MODEL_NAME=5unnySunny/medical-flan-t5-small-log-summarizer
 ENV MODEL_VERSION=1.0.0
 ENV OMP_NUM_THREADS=2
-ENV OPENBLAS_NUM_THREADS=2
+ENV OPENBLAS_NUM_THREADS=1
 
 # Expose port
 EXPOSE 8003

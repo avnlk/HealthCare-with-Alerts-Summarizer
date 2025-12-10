@@ -25,7 +25,7 @@ spec:
       containers:
         - name: summarizer-service
           image: healthcare-aiops/summarizer-service:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8003
               protocol: TCP

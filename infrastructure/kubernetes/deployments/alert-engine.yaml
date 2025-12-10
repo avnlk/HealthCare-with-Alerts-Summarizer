@@ -25,7 +25,7 @@ spec:
       containers:
         - name: alert-engine
           image: healthcare-aiops/alert-engine:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8002
               protocol: TCP
@@ -43,6 +43,16 @@ spec:
                   name: healthcare-secrets
                   key: ELASTICSEARCH_PASSWORD
                   optional: true
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: healthcare-secrets
+                  key: MONGODB_URI
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: healthcare-config
+                  key: MONGODB_DATABASE
           resources:
             requests:
               cpu: "100m"

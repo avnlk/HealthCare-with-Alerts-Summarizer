@@ -6,9 +6,11 @@ metadata:
 data:
   ELASTICSEARCH_URL: "http://elasticsearch:9200"
   ELASTICSEARCH_USER: "elastic"
-  MODEL_NAME: "sshleifer/distilbart-cnn-12-6"
+  MODEL_NAME: "5unnySunny/medical-flan-t5-small-log-summarizer"
   MODEL_VERSION: "1.0.0"
   VITALS_INTERVAL_MS: "1000"
   SUMMARY_INTERVAL_SECONDS: "60"
   DEBUG: "false"
   CORS_ORIGINS: "http://localhost:3000,https://healthcare.example.com"
+  # MongoDB settings (connection string in secrets)
+  MONGODB_DATABASE: "healthcare_aiops"
