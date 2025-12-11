@@ -130,14 +130,13 @@ pipeline {
             steps {
                 dir('infrastructure/ansible') {
                     script {
-                        // Create a virtual environment within the current working directory (infrastructure/ansible)
                         sh '''
+                            # Create a virtual environment within the current working directory (infrastructure/ansible)
                             python3 -m venv .venv
-                            # Activate it using the POSIX-compliant '.' command
-                            . .venv/bin/activate
-                            pip install ansible kubernetes
-                            # Run the Ansible playbook
-                            ansible-playbook playbooks/backend.yml
+                            # Install dependencies using the venv's pip executable
+                            ./.venv/bin/pip install ansible kubernetes
+                            # Run the playbook using the venv's ansible-playbook executable
+                            ./.venv/bin/ansible-playbook playbooks/backend.yml
                         '''
                     }
                 }
