@@ -22,6 +22,13 @@ spec:
                 name: frontend
                 port:
                   number: 80
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8004
           - path: /api/vitals
             pathType: Prefix
             backend:
