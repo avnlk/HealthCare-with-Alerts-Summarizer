@@ -64,3 +64,4 @@
     - summarizer-service
     - frontend
   changed_when: false
+ 
