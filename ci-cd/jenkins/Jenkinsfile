@@ -133,8 +133,8 @@ pipeline {
                         // Create a virtual environment within the current working directory (infrastructure/ansible)
                         sh '''
                             python3 -m venv .venv
-                            # Activate it and install necessary Python libraries for Ansible
-                            source .venv/bin/activate
+                            # Activate it using the POSIX-compliant '.' command
+                            . .venv/bin/activate
                             pip install ansible kubernetes
                             # Run the Ansible playbook
                             ansible-playbook playbooks/backend.yml
