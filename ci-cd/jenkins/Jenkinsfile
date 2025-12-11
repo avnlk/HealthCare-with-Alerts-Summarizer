@@ -138,7 +138,7 @@ pipeline {
                         // Run the playbook inside a container, mounting both .kube and .minikube for authentication.
                         // This provides a fully isolated environment with all dependencies and credentials.
                         sh """
-                            docker run --rm \\
+                            docker run --rm --network="host" \\
                                 -v /home/lokesh/.kube:/root/.kube:ro \\
                                 -v /home/lokesh/.minikube:/home/lokesh/.minikube:ro \\
                                 -v ${WORKSPACE}:/workspace \\
