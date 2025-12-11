@@ -1,60 +1,60 @@
 ---
-# Backend Role - Deploys healthcare services using the k8s module to bypass proxies.
+# Backend Role - Deploys healthcare services using the k8s module and template lookup.
 
 - name: Deploy Namespace
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/namespace.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/namespace.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy ELK Stack - Elasticsearch
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/elk/elasticsearch.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/elk/elasticsearch.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy ELK Stack - Kibana
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/elk/kibana.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/elk/kibana.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy ConfigMaps
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/configmaps/healthcare-config.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/configmaps/healthcare-config.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy Secrets
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/secrets/healthcare-secrets.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/secrets/healthcare-secrets.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy Application - Alert Engine
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/deployments/alert-engine.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/deployments/alert-engine.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy Application - Vitals Generator
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/deployments/vitals-generator.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/deployments/vitals-generator.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy Application - Summarizer Service
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/deployments/summarizer-service.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/deployments/summarizer-service.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy Application - Frontend
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/deployments/frontend.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/deployments/frontend.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy HPA
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/hpa/hpa.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/hpa/hpa.yaml.j2') | from_yaml_all }}"
 
 - name: Deploy Ingress
   kubernetes.core.k8s:
     state: present
-    src: "{{ playbook_dir }}/../../kubernetes/ingress/ingress.yaml.j2"
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/ingress/ingress.yaml.j2') | from_yaml_all }}"
 
 - name: Wait for deployments to be ready
   ansible.builtin.command: kubectl rollout status deployment/{{ item }} -n healthcare --timeout=300s
