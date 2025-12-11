@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field
 from functools import lru_cache
 
 
@@ -12,7 +13,7 @@ class Settings(BaseSettings):
 
     # Server settings
     host: str = "0.0.0.0"
-    port: int = 8004
+    port: int = Field(default=8004, env="PORT")
 
     # MongoDB settings
     mongodb_uri: str = "mongodb://localhost:27017"
