@@ -130,15 +130,25 @@ pipeline {
             steps {
                 dir('infrastructure/ansible') {
                     script {
-                        sh '''
-                            # Create a virtual environment within the current working directory (infrastructure/ansible)
-                            python3 -m venv .venv
-                            # Install dependencies using the venv's pip executable
-                            ./.venv/bin/pip install ansible kubernetes
-                            # Run the playbook, explicitly telling it to use the Python from our virtual environment
-                            # This overrides the interpreter setting in the inventory/hosts file.
-                            ./.venv/bin/ansible-playbook playbooks/backend.yml --extra-vars "ansible_python_interpreter=$(pwd)/.venv/bin/python"
-                        '''
+                        def ansibleRunnerImage = "ansible-runner:${APP_VERSION}"
+                        
+                        // Build the ansible runner image from the Dockerfile
+                        sh "docker build -t ${ansibleRunnerImage} ."
+
+                        // Run the playbook inside a container, mounting both .kube and .minikube for authentication.
+                        // This provides a fully isolated environment with all dependencies and credentials.
+                        sh """
+                            docker run --rm \\
+                                -v /home/lokesh/.kube:/root/.kube:ro \\
+                                -v /home/lokesh/.minikube:/home/lokesh/.minikube:ro \\
+                                -v ${WORKSPACE}:/workspace \\
+                                -w /workspace/infrastructure/ansible \\
+                                -e DOCKER_REGISTRY="${DOCKER_REGISTRY}" \\
+                                -e DOCKER_USERNAME="${DOCKER_USERNAME}" \\
+                                -e APP_VERSION="${APP_VERSION}" \\
+                                ${ansibleRunnerImage} \\
+                                ansible-playbook playbooks/backend.yml
+                        """
                     }
                 }
             }
