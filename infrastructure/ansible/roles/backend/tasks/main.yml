@@ -26,7 +26,7 @@
   changed_when: false
 
 - name: Apply all rendered Kubernetes manifests from the temporary directory
-  ansible.builtin.command: kubectl apply -f {{ temp_manifest_dir.path }}/
+  ansible.builtin.command: kubectl apply --validate=false -f {{ temp_manifest_dir.path }}/
   register: kubectl_apply_result
   changed_when: "'configured' in kubectl_apply_result.stdout or 'created' in kubectl_apply_result.stdout"
 

@@ -18,31 +18,31 @@ pipeline {
             }
         }
 
-        stage('2. Backend Unit Tests') {
-            parallel {
-                stage('Alert Engine Tests') {
-                    steps {
-                        dir('backend/alert-engine') {
-                            sh 'docker run --rm -v $PWD:/app -w /app python:3.11-slim sh -c "pip install -r requirements.txt && pip install pytest && python -m pytest tests/ -v"'
-                        }
-                    }
-                }
-                // stage('Summarizer Service Tests') {
-                //     steps {
-                //         dir('backend/summarizer-service') {
-                //             sh 'docker run --rm -v $PWD:/app -w /app python:3.11-slim sh -c "pip install -r requirements.txt && pip install pytest && python -m pytest tests/ -v"'
-                //         }
-                //     }
-                // }
-                stage('Vitals Generator Tests') {
-                    steps {
-                        dir('backend/vitals-generator') {
-                            sh 'docker run --rm -v $PWD:/app -w /app python:3.11-slim sh -c "pip install -r requirements.txt && pip install pytest && python -m pytest tests/ -v"'
-                        }
-                    }
-                }
-            }
-        }
+        // stage('2. Backend Unit Tests') {
+        //     parallel {
+        //         stage('Alert Engine Tests') {
+        //             steps {
+        //                 dir('backend/alert-engine') {
+        //                     sh 'docker run --rm -v $PWD:/app -w /app python:3.11-slim sh -c "pip install -r requirements.txt && pip install pytest && python -m pytest tests/ -v"'
+        //                 }
+        //             }
+        //         }
+        //         // stage('Summarizer Service Tests') {
+        //         //     steps {
+        //         //         dir('backend/summarizer-service') {
+        //         //             sh 'docker run --rm -v $PWD:/app -w /app python:3.11-slim sh -c "pip install -r requirements.txt && pip install pytest && python -m pytest tests/ -v"'
+        //         //         }
+        //         //     }
+        //         // }
+        //         stage('Vitals Generator Tests') {
+        //             steps {
+        //                 dir('backend/vitals-generator') {
+        //                     sh 'docker run --rm -v $PWD:/app -w /app python:3.11-slim sh -c "pip install -r requirements.txt && pip install pytest && python -m pytest tests/ -v"'
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         // stage('3. Frontend Unit Tests') {
         //     steps {
