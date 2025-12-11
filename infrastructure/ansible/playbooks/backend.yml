@@ -9,5 +9,10 @@
     docker_username: "{{ lookup('env', 'DOCKER_USERNAME') }}"
     app_version: "{{ lookup('env', 'APP_VERSION') }}"
 
+  pre_tasks:
+    - name: Debug - Print deployment variables
+      ansible.builtin.debug:
+        msg: "DOCKER_REGISTRY={{ docker_registry }}, DOCKER_USERNAME={{ docker_username }}, APP_VERSION={{ app_version }}"
+
   roles:
     - role: backend
