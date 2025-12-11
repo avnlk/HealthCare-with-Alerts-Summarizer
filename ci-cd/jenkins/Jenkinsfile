@@ -130,25 +130,10 @@ pipeline {
             steps {
                 dir('infrastructure/ansible') {
                     script {
-                        def ansibleRunnerImage = "ansible-runner:${APP_VERSION}"
-                        
-                        // Build the ansible runner image from the Dockerfile
-                        sh "docker build -t ${ansibleRunnerImage} ."
-
-                        // Run the playbook inside the container for local deployment.
-                        // We mount the user's .kube directory to give kubectl inside the container access to the host's k8s cluster.
-                        // We pass environment variables for Ansible to use in templates.
-                        sh """
-                            docker run --rm --network="host" \
-                                -v $HOME/.kube:/root/.kube:ro \
-                                -v ${WORKSPACE}:/workspace \
-                                -w /workspace/infrastructure/ansible \
-                                -e DOCKER_REGISTRY="${DOCKER_REGISTRY}" \
-                                -e DOCKER_USERNAME="${DOCKER_USERNAME}" \
-                                -e APP_VERSION="${APP_VERSION}" \
-                                ${ansibleRunnerImage} \
-                                ansible-playbook playbooks/backend.yml
-                        """
+                        // Ensure Ansible is installed on the Jenkins agent and that ~/.kube/config is correctly set up.
+                        // The DOCKER_REGISTRY, DOCKER_USERNAME, and APP_VERSION environment variables
+                        // are automatically passed to the playbook.
+                        sh 'ansible-playbook playbooks/backend.yml'
                     }
                 }
             }
