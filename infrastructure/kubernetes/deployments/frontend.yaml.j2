@@ -22,8 +22,6 @@ spec:
         app: frontend
         component: frontend
     spec:
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: frontend
           image: "{{ docker_registry }}/{{ docker_username }}/frontend:{{ app_version }}"

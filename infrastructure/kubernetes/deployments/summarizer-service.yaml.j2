@@ -22,8 +22,6 @@ spec:
         app: summarizer-service
         component: backend
     spec:
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: summarizer-service
           image: "{{ docker_registry }}/{{ docker_username }}/summarizer-service:{{ app_version }}"
