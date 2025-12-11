@@ -138,25 +138,16 @@ pipeline {
                         // Run the playbook inside the container for local deployment.
                         // We mount the user's .kube directory to give kubectl inside the container access to the host's k8s cluster.
                         // We pass environment variables for Ansible to use in templates.
-                        // We pass environment variables for Ansible to use in templates.
                         sh """
                             docker run --rm --network="host" \
-                                -v ~/.kube:/root/.kube:ro \
+                                -v $HOME/.kube:/root/.kube:ro \
                                 -v ${WORKSPACE}:/workspace \
                                 -w /workspace/infrastructure/ansible \
                                 -e DOCKER_REGISTRY="${DOCKER_REGISTRY}" \
                                 -e DOCKER_USERNAME="${DOCKER_USERNAME}" \
                                 -e APP_VERSION="${APP_VERSION}" \
                                 ${ansibleRunnerImage} \
-                                sh -c " \
-                                    set -x && \
-                                    echo '--- Running kubectl config view (from inside container) ---' && \
-                                    kubectl config view && \
-                                    echo '--- Running kubectl cluster-info (from inside container) ---' && \
-                                    kubectl cluster-info && \
-                                    echo '--- Running ansible-playbook ---' && \
-                                    ansible-playbook playbooks/backend.yml \\
-                                "
+                                ansible-playbook playbooks/backend.yml
                         """
                     }
                 }
