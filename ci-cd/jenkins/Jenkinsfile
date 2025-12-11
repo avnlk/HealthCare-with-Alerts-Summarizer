@@ -63,7 +63,12 @@ pipeline {
         stage('5. Docker Build') {
             steps {
                 script {
-                    def backend_services = ['alert-engine', 'auth-service', 'summarizer-service', 'vitals-generator']
+                    // Build auth-service with no cache to ensure code changes are picked up
+                    dir("backend/auth-service") {
+                        sh "docker build --no-cache -t ${DOCKER_REGISTRY}/${DOCKER_USERNAME}/auth-service:${APP_VERSION} ."
+                    }
+
+                    def backend_services = ['alert-engine', 'summarizer-service', 'vitals-generator']
                     backend_services.each { service ->
                         dir("backend/${service}") {
                             sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${service}:${APP_VERSION} ."
