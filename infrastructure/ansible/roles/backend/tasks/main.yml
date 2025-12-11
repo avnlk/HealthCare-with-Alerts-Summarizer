@@ -26,6 +26,11 @@
     state: present
     definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/secrets/healthcare-secrets.yaml.j2') | from_yaml_all }}"
 
+- name: Deploy MongoDB Database
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/db/mongo.yaml.j2') | from_yaml_all }}"
+
 - name: Deploy Application - Alert Engine
   kubernetes.core.k8s:
     state: present
