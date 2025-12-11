@@ -11,7 +11,3 @@
 
   roles:
     - role: backend
-      vars:
-        docker_registry: "{{ docker_registry }}"
-        docker_username: "{{ docker_username }}"
-        app_version: "{{ app_version }}"
