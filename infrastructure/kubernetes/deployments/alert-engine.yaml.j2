@@ -22,6 +22,8 @@ spec:
         app: alert-engine
         component: backend
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: alert-engine
           image: "{{ docker_registry }}/{{ docker_username }}/alert-engine:{{ app_version }}"

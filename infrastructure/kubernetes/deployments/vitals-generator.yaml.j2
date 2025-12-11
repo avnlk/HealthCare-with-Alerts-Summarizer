@@ -22,6 +22,8 @@ spec:
         app: vitals-generator
         component: backend
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: vitals-generator
           image: "{{ docker_registry }}/{{ docker_username }}/vitals-generator:{{ app_version }}"
