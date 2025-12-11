@@ -36,6 +36,11 @@
     state: present
     definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/deployments/vitals-generator.yaml.j2') | from_yaml_all }}"
 
+- name: Deploy Application - Auth Service
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/deployments/auth-service.yaml.j2') | from_yaml_all }}"
+
 - name: Deploy Application - Summarizer Service
   kubernetes.core.k8s:
     state: present
@@ -59,9 +64,10 @@
 - name: Wait for deployments to be ready
   ansible.builtin.command: "kubectl rollout status deployment/{{ item.name }} -n healthcare --timeout={{ item.timeout }}"
   loop:
-    - { name: 'vitals-generator', timeout: '300s' }
-    - { name: 'alert-engine', timeout: '300s' }
+    - { name: 'vitals-generator', timeout: '450s' }
+    - { name: 'alert-engine', timeout: '450s' }
+    - { name: 'auth-service', timeout: '450s' }
     - { name: 'summarizer-service', timeout: '900s' }
-    - { name: 'frontend', timeout: '300s' }
+    - { name: 'frontend', timeout: '450s' }
   changed_when: false
  

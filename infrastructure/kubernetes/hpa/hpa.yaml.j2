@@ -8,7 +8,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: summarizer-service
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 10
   metrics:
     - type: Resource
@@ -47,7 +47,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: vitals-generator
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 5
   metrics:
     - type: Resource
@@ -67,7 +67,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: alert-engine
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 5
   metrics:
     - type: Resource
