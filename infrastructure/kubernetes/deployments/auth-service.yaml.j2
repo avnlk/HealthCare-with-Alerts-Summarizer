@@ -31,6 +31,8 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
+            - name: PORT
+              value: "8000"
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
