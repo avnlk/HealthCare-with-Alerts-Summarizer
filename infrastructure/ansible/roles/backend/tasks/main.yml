@@ -57,11 +57,11 @@
     definition: "{{ lookup('template', '{{ playbook_dir }}/../../kubernetes/ingress/ingress.yaml.j2') | from_yaml_all }}"
 
 - name: Wait for deployments to be ready
-  ansible.builtin.command: kubectl rollout status deployment/{{ item }} -n healthcare --timeout=300s
+  ansible.builtin.command: "kubectl rollout status deployment/{{ item.name }} -n healthcare --timeout={{ item.timeout }}"
   loop:
-    - vitals-generator
-    - alert-engine
-    - summarizer-service
-    - frontend
+    - { name: 'vitals-generator', timeout: '300s' }
+    - { name: 'alert-engine', timeout: '300s' }
+    - { name: 'summarizer-service', timeout: '900s' }
+    - { name: 'frontend', timeout: '300s' }
   changed_when: false
  
