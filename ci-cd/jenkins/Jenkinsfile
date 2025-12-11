@@ -76,25 +76,25 @@ pipeline {
             }
         }
 
-        stage('6. Docker Push') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh "echo ${DOCKER_PASS} | docker login ${DOCKER_REGISTRY} -u ${DOCKER_USER} --password-stdin"
+        // stage('6. Docker Push') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+        //                 sh "echo ${DOCKER_PASS} | docker login ${DOCKER_REGISTRY} -u ${DOCKER_USER} --password-stdin"
                         
-                        def services_to_push = ['alert-engine', 'auth-service', 'vitals-generator']
+        //                 def services_to_push = ['alert-engine', 'auth-service', 'vitals-generator']
                         
-                        services_to_push.each { service ->
-                            def imageName = "${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${service}:${APP_VERSION}"
-                            sh "docker push ${imageName}"
-                        }
+        //                 services_to_push.each { service ->
+        //                     def imageName = "${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${service}:${APP_VERSION}"
+        //                     sh "docker push ${imageName}"
+        //                 }
 
-                        def frontendImageName = "${DOCKER_REGISTRY}/${DOCKER_USERNAME}/frontend:${APP_VERSION}"
-                        sh "docker push ${frontendImageName}"
-                    }
-                }
-            }
-        }
+        //                 def frontendImageName = "${DOCKER_REGISTRY}/${DOCKER_USERNAME}/frontend:${APP_VERSION}"
+        //                 sh "docker push ${frontendImageName}"
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('7. Local Agent Cleanup') {
             steps {
