@@ -48,16 +48,15 @@ class Database:
     async def _create_indexes(self):
         """Create database indexes."""
         # Users collection
-        await self.db.users.create_index("username", unique=True)
-        await self.db.users.create_index("email", sparse=True)
+        await self.db.users.create_index([("username", 1)], unique=True)
+        await self.db.users.create_index([("email", 1)], sparse=True, unique=True)
 
         # Sessions collection
-        await self.db.sessions.create_index("user_id")
-        await self.db.sessions.create_index("expires_at", expireAfterSeconds=0)
+        await self.db.sessions.create_index([("user_id", 1)])
+        await self.db.sessions.create_index([("expires_at", 1)], expireAfterSeconds=0)
 
         # Audit logs collection
-        await self.db.audit_logs.create_index("user_id")
-        await self.db.audit_logs.create_index("timestamp")
+        await self.db.audit_logs.create_index([("user_id", 1)])
         await self.db.audit_logs.create_index([("timestamp", -1)])
 
     async def _ensure_default_admin(self):
