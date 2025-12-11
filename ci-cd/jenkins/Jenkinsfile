@@ -130,10 +130,15 @@ pipeline {
             steps {
                 dir('infrastructure/ansible') {
                     script {
-                        // Ensure Ansible is installed on the Jenkins agent and that ~/.kube/config is correctly set up.
-                        // The DOCKER_REGISTRY, DOCKER_USERNAME, and APP_VERSION environment variables
-                        // are automatically passed to the playbook.
-                        sh 'ansible-playbook playbooks/backend.yml'
+                        // Create a virtual environment within the current working directory (infrastructure/ansible)
+                        sh '''
+                            python3 -m venv .venv
+                            # Activate it and install necessary Python libraries for Ansible
+                            source .venv/bin/activate
+                            pip install ansible kubernetes
+                            # Run the Ansible playbook
+                            ansible-playbook playbooks/backend.yml
+                        '''
                     }
                 }
             }
