@@ -135,8 +135,9 @@ pipeline {
                             python3 -m venv .venv
                             # Install dependencies using the venv's pip executable
                             ./.venv/bin/pip install ansible kubernetes
-                            # Run the playbook using the venv's ansible-playbook executable
-                            ./.venv/bin/ansible-playbook playbooks/backend.yml
+                            # Run the playbook, explicitly telling it to use the Python from our virtual environment
+                            # This overrides the interpreter setting in the inventory/hosts file.
+                            ./.venv/bin/ansible-playbook playbooks/backend.yml --extra-vars "ansible_python_interpreter=$(pwd)/.venv/bin/python"
                         '''
                     }
                 }
