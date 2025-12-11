@@ -147,7 +147,7 @@ pipeline {
                                 -e DOCKER_USERNAME="${DOCKER_USERNAME}" \
                                 -e APP_VERSION="${APP_VERSION}" \
                                 ${ansibleRunnerImage} \
-                                ansible-playbook -i inventory/hosts playbooks/backend.yml
+                                ansible-playbook playbooks/backend.yml
                         """
                     }
                 }
