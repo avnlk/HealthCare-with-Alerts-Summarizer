@@ -10,7 +10,7 @@
 
 - name: Find all k8s template files
   ansible.builtin.find:
-    paths: "{{ playbook_dir }}/../../../kubernetes/"
+    paths: "{{ playbook_dir }}/../../kubernetes/"
     patterns: "*.yaml.j2"
     recurse: yes
   register: k8s_templates
