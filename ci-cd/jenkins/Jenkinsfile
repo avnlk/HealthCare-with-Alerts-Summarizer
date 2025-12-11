@@ -131,16 +131,23 @@ pipeline {
                 dir('infrastructure/ansible') {
                     script {
                         def ansibleRunnerImage = "ansible-runner:${APP_VERSION}"
+                        
+                        // Build the ansible runner image from the Dockerfile
                         sh "docker build -t ${ansibleRunnerImage} ."
 
-                        // Run the playbook inside the container.
-                        // We mount the user's .kube directory to give kubectl inside the container access to the host's minikube cluster.
-                        // The --network="host" flag is necessary for the container to access services running on the host, like the Kubernetes API.
+                        // Run the playbook inside the container for local deployment.
+                        // We mount the user's .kube directory to give kubectl inside the container access to the host's k8s cluster.
+                        // We pass environment variables for Ansible to use in templates.
                         sh """
                             docker run --rm --network="host" \
                                 -v ~/.kube:/root/.kube:ro \
+                                -v ${WORKSPACE}:/workspace \
+                                -w /workspace/infrastructure/ansible \
+                                -e DOCKER_REGISTRY="${DOCKER_REGISTRY}" \
+                                -e DOCKER_USERNAME="${DOCKER_USERNAME}" \
+                                -e APP_VERSION="${APP_VERSION}" \
                                 ${ansibleRunnerImage} \
-                                ansible-playbook playbooks/backend.yml -e "DOCKER_REGISTRY=${DOCKER_REGISTRY} DOCKER_USERNAME=${DOCKER_USERNAME} APP_VERSION=${APP_VERSION}"
+                                ansible-playbook -i inventory/hosts playbooks/backend.yml
                         """
                     }
                 }

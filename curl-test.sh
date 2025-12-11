@@ -1,0 +1,11 @@
+curl http://localhost:3000/health
+echo "\n"
+curl http://localhost:8001/health
+echo "\n"
+curl http://localhost:8002/health
+echo "\n"
+curl http://localhost:8003/health
+echo "\n"
+curl http://localhost:9200/_cluster/health?pretty
+echo "\n"
+curl http://localhost:5601

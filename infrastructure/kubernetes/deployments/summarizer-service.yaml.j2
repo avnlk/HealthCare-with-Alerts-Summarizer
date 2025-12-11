@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: summarizer-service
-          image: healthcare-aiops/summarizer-service:latest
+          image: "{{ docker_registry }}/{{ docker_username }}/summarizer-service:{{ app_version }}"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8003

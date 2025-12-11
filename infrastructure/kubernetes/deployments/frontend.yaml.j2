@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: healthcare-aiops/frontend:latest
+          image: "{{ docker_registry }}/{{ docker_username }}/frontend:{{ app_version }}"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

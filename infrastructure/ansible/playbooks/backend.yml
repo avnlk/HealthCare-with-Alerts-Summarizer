@@ -1,9 +1,17 @@
 ---
 # Backend services deployment playbook
-- name: Deploy Backend Services
-  hosts: kubernetes_masters
-  become: yes
-  gather_facts: yes
+- name: Deploy Backend Services to Local Kubernetes
+  hosts: localhost
+  gather_facts: no # Not needed for local kubectl operations, speeds up playbook
+
+  vars:
+    docker_registry: "{{ lookup('env', 'DOCKER_REGISTRY') }}"
+    docker_username: "{{ lookup('env', 'DOCKER_USERNAME') }}"
+    app_version: "{{ lookup('env', 'APP_VERSION') }}"
 
   roles:
     - role: backend
+      vars:
+        docker_registry: "{{ docker_registry }}"
+        docker_username: "{{ docker_username }}"
+        app_version: "{{ app_version }}"

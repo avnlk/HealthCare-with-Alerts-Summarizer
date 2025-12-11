@@ -1,0 +1,322 @@
+================================================================================
+              HEALTHCARE-AIOPS CI/CD WORKFLOW DOCUMENTATION
+           Jenkins → Ansible → Kubernetes Deployment Pipeline
+================================================================================
+
+OVERVIEW
+--------
+This project uses a 3-tier automated deployment pipeline:
+  1. JENKINS      → Orchestrates the entire CI/CD pipeline (builds, tests, deploys)
+  2. ANSIBLE      → Configuration management & Kubernetes deployment automation
+  3. KUBERNETES   → Container orchestration & application runtime environment
+
+
+================================================================================
+COMPONENT ROLES
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. JENKINS (CI/CD Orchestrator)                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Purpose: Continuous Integration & Continuous Deployment automation
+
+Location: /ci-cd/jenkins/Jenkinsfile
+
+Key Responsibilities:
+  • Source code checkout from Git repository
+  • Run unit tests for all backend services (Python) and frontend (Node.js)
+  • Build production-ready frontend bundle (npm build)
+  • Build Docker images for all microservices
+  • Push Docker images to Docker Hub registry (docker.io/5unnySunny/*)
+  • Trigger Ansible playbooks for Kubernetes deployment
+  • Validate deployment success via kubectl rollout status
+  • Send email notifications on pipeline success/failure
+
+Output: Docker images pushed to Docker Hub with version tags (1.0.<BUILD_NUMBER>)
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. ANSIBLE (Deployment Automation)                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Purpose: Automate Kubernetes resource provisioning and configuration
+
+Location: /infrastructure/ansible/
+
+Key Responsibilities:
+  • Template Kubernetes YAML manifests with dynamic values
+  • Apply Kubernetes deployments, services, secrets, ConfigMaps
+  • Manage declarative infrastructure as code
+  • Handle environment-specific configurations
+  • Execute kubectl commands against Kubernetes cluster
+
+How it connects:
+  • Jenkins calls Ansible via Docker container (ansible-runner:VERSION)
+  • Ansible uses kubectl to communicate with Kubernetes API server
+  • Accesses Kubernetes cluster via mounted ~/.kube/config file
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. KUBERNETES (Container Orchestration Platform)                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Purpose: Run and manage containerized applications
+
+Location: /infrastructure/kubernetes/
+
+Key Responsibilities:
+  • Pull Docker images from Docker Hub
+  • Run containers across cluster nodes
+  • Manage service discovery and load balancing
+  • Handle health checks (liveness/readiness probes)
+  • Auto-restart failed containers
+  • Manage secrets and configuration
+  • Provide persistent storage via PersistentVolumes
+
+Namespace: healthcare (all application resources deployed here)
+
+
+================================================================================
+COMPLETE WORKFLOW (Step-by-Step)
+================================================================================
+
+STAGE 1: CODE CHECKOUT
+-----------------------
+  Jenkins Agent → Git Repository
+  └─→ Pulls latest source code from SCM
+
+
+STAGE 2-3: TESTING
+-------------------
+  Jenkins → Docker Containers (Python 3.11 & Node 18)
+  ├─→ Backend Unit Tests (pytest)
+  │   ├─→ alert-engine/tests/
+  │   ├─→ summarizer-service/tests/
+  │   └─→ vitals-generator/tests/
+  └─→ Frontend Unit Tests (npm test)
+
+
+STAGE 4: FRONTEND BUILD
+------------------------
+  Jenkins → Docker (Node 18 container)
+  └─→ Builds production-ready React bundle (npm run build)
+
+
+STAGE 5: DOCKER IMAGE BUILD
+----------------------------
+  Jenkins → Docker Build
+  ├─→ backend/alert-engine → docker.io/5unnySunny/alert-engine:1.0.X
+  ├─→ backend/auth-service → docker.io/5unnySunny/auth-service:1.0.X
+  ├─→ backend/summarizer-service → docker.io/5unnySunny/summarizer-service:1.0.X
+  ├─→ backend/vitals-generator → docker.io/5unnySunny/vitals-generator:1.0.X
+  └─→ frontend → docker.io/5unnySunny/frontend:1.0.X
+
+
+STAGE 6: DOCKER IMAGE PUSH
+----------------------------
+  Jenkins → Docker Hub Registry (docker.io)
+  └─→ Pushes all 5 Docker images to public registry
+      (Uses credentials ID: "docker-hub-credentials")
+
+
+STAGE 7: CLEANUP
+-----------------
+  Jenkins → cleanup.sh
+  └─→ Removes old local Docker images to free disk space
+
+
+STAGE 8: INTEGRATION TESTING
+------------------------------
+  Jenkins → Docker Compose
+  ├─→ Spins up all services locally via docker-compose.yml
+  ├─→ Runs test-deployment.sh to verify service health
+  └─→ Tears down test environment (docker-compose down)
+
+
+STAGE 9: KUBERNETES DEPLOYMENT (via Ansible)
+----------------------------------------------
+  Jenkins → Ansible Runner (Docker Container)
+  │
+  │  [Connection Path]
+  │  ├─→ Mounts ~/.kube/config (Kubernetes authentication)
+  │  ├─→ Uses --network="host" (access Kubernetes API server)
+  │  └─→ Runs ansible-playbook playbooks/backend.yml
+  │
+  └─→ Ansible → Kubernetes API Server
+      │
+      ├─→ Applies Kubernetes manifests:
+      │   ├─→ Deployments (alert-engine, summarizer-service, vitals-generator, frontend)
+      │   ├─→ Services (ClusterIP/LoadBalancer for network access)
+      │   ├─→ Secrets (healthcare-secrets.yaml)
+      │   ├─→ ConfigMaps (application configuration)
+      │   └─→ PersistentVolumeClaims (if needed)
+      │
+      └─→ Kubernetes Cluster
+          ├─→ Pulls Docker images from docker.io/5unnySunny/*
+          ├─→ Creates/updates Pods in "healthcare" namespace
+          ├─→ Starts containers with health probes
+          └─→ Exposes services via ClusterIP/NodePort/LoadBalancer
+
+
+STAGE 10: POST-DEPLOYMENT VALIDATION
+-------------------------------------
+  Jenkins → kubectl (via Jenkins agent)
+  └─→ Validates rollout status for each deployment:
+      ├─→ kubectl rollout status deployment/alert-engine -n healthcare
+      ├─→ kubectl rollout status deployment/summarizer-service -n healthcare
+      ├─→ kubectl rollout status deployment/vitals-generator -n healthcare
+      └─→ kubectl rollout status deployment/frontend -n healthcare
+
+      (Waits up to 120 seconds for each deployment to become ready)
+
+
+POST-PIPELINE ACTIONS
+----------------------
+  Jenkins → Email Notification
+  ├─→ SUCCESS: Sends success email with build URL
+  └─→ FAILURE: Sends failure email with build URL
+
+
+================================================================================
+CONNECTION DIAGRAM
+================================================================================
+
+┌──────────────┐
+│   JENKINS    │ (Orchestrator)
+│  CI/CD Agent │
+└──────┬───────┘
+       │
+       ├─────────────────────────────────────┐
+       │                                     │
+       ▼                                     ▼
+┌──────────────┐                    ┌──────────────┐
+│  DOCKER HUB  │                    │   ANSIBLE    │
+│  (Registry)  │                    │  (via Docker)│
+└──────────────┘                    └──────┬───────┘
+       │                                   │
+       │                                   │ kubectl commands
+       │                                   ▼
+       │                            ┌──────────────┐
+       │                            │  KUBERNETES  │
+       │                            │ API SERVER   │
+       │                            └──────┬───────┘
+       │                                   │
+       │                                   │ creates/manages
+       │                                   ▼
+       │                            ┌──────────────────────┐
+       └───────────────────────────▶│  KUBERNETES CLUSTER  │
+                                    │  (healthcare ns)     │
+                pulls images        │                      │
+                                    │  ┌────────────────┐  │
+                                    │  │ Pod: alert-eng │  │
+                                    │  │ Pod: summarizer│  │
+                                    │  │ Pod: vitals-gen│  │
+                                    │  │ Pod: frontend  │  │
+                                    │  │ Pod: postgres  │  │
+                                    │  │ Pod: elastic   │  │
+                                    │  └────────────────┘  │
+                                    └──────────────────────┘
+
+
+================================================================================
+KEY INTEGRATION POINTS
+================================================================================
+
+1. Jenkins → Docker Hub
+   • Credentials: docker-hub-credentials (Jenkins credential ID)
+   • Registry: docker.io
+   • Username: 5unnySunny
+   • Images tagged with: 1.0.<BUILD_NUMBER>
+
+2. Jenkins → Ansible
+   • Method: Docker-in-Docker (runs Ansible in container)
+   • Mounts: ~/.kube:/root/.kube:ro (Kubernetes config)
+   • Network: --network="host" (access localhost K8s API)
+   • Passes variables: DOCKER_REGISTRY, DOCKER_USERNAME, APP_VERSION
+
+3. Ansible → Kubernetes
+   • Tool: kubectl (Ansible's kubernetes.core.k8s module)
+   • Authentication: Uses mounted ~/.kube/config
+   • Namespace: healthcare
+   • Action: kubectl apply -f <manifests>
+
+4. Kubernetes → Docker Hub
+   • ImagePullPolicy: IfNotPresent or Always
+   • Pulls: docker.io/5unnySunny/<service>:1.0.<BUILD_NUMBER>
+   • Authentication: Via imagePullSecrets (if private registry)
+
+
+================================================================================
+ENVIRONMENT VARIABLES FLOW
+================================================================================
+
+Jenkins Environment:
+  DOCKER_REGISTRY     = "docker.io"
+  DOCKER_USERNAME     = "5unnySunny"
+  DOCKER_CREDENTIALS_ID = "docker-hub-credentials"
+  APP_VERSION         = "1.0.${env.BUILD_NUMBER}"
+
+            ↓ (passed to Ansible)
+
+Ansible Variables:
+  DOCKER_REGISTRY     → Used in image templates
+  DOCKER_USERNAME     → Used in image path
+  APP_VERSION         → Used for image tags
+
+            ↓ (templated into K8s manifests)
+
+Kubernetes Manifests:
+  image: docker.io/5unnySunny/alert-engine:1.0.X
+  image: docker.io/5unnySunny/summarizer-service:1.0.X
+  image: docker.io/5unnySunny/vitals-generator:1.0.X
+  image: docker.io/5unnySunny/frontend:1.0.X
+
+
+================================================================================
+PREREQUISITES FOR PIPELINE TO WORK
+================================================================================
+
+Jenkins Requirements:
+  ✓ Docker installed on Jenkins agent
+  ✓ kubectl installed on Jenkins agent
+  ✓ Git access to source repository
+  ✓ Credential "docker-hub-credentials" configured
+  ✓ ~/.kube/config with valid Kubernetes cluster context
+
+Ansible Requirements:
+  ✓ Dockerfile exists in infrastructure/ansible/
+  ✓ ansible-playbook and kubectl in PATH
+  ✓ Playbook: infrastructure/ansible/playbooks/backend.yml
+
+Kubernetes Requirements:
+  ✓ Cluster accessible via kubectl
+  ✓ Namespace "healthcare" exists (or Ansible creates it)
+  ✓ Sufficient resources (CPU/memory) for all services
+  ✓ Image pull access to docker.io
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+If deployment fails at Stage 9 (Ansible):
+  → Check Jenkins agent has ~/.kube/config properly configured
+  → Verify kubectl can connect: kubectl get nodes
+  → Check Ansible playbook exists: infrastructure/ansible/playbooks/backend.yml
+
+If deployment fails at Stage 10 (Validation):
+  → Check pod status: kubectl get pods -n healthcare
+  → View pod logs: kubectl logs <pod-name> -n healthcare
+  → Check image pull: kubectl describe pod <pod-name> -n healthcare
+  → Verify images exist on Docker Hub: docker.io/5unnySunny/*
+
+If images aren't pulled:
+  → Verify Docker Hub credentials are correct
+  → Check images were pushed in Stage 6
+  → Verify image tags match: 1.0.<BUILD_NUMBER>
+
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
