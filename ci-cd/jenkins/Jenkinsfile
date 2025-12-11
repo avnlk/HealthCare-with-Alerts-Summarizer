@@ -116,7 +116,7 @@ pipeline {
                         sh 'sleep 10'
 
                         echo "Running deployment tests..."
-                        sh 'chmod +x test-deployment.sh'
+                        sh 'chmod +x *.sh'
                         sh './test-deployment.sh'
                     } finally {
                         echo "Tearing down integration test environment..."
